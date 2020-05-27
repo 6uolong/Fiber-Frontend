@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width， initial-scale=1， maximum-scale=1">
+  <title>Proctector</title>
+  <link rel="stylesheet" href="./css/layui.css">
+  <style>
+    html,body{
+      height: 100vh;
+      width: 100vw;
+    }
+    .banner {
+      display: inline-block; 
+      font-size: 32px; 
+      color: cyan; 
+      line-height: 10vh;
+    }
+    a {
+      color: gray;
+    }
+    p {
+      margin-top: 1vh;
+      margin-bottom: 1vh;
+    }
+    .tabbtn {
+      background-color: #23262E; 
+      border: 0; 
+      line-height: 24px;
+      font-size: 32px;
+    }
+    .topbar {
+      height: 24px; 
+      width: 24px; 
+      margin-top: 3vh; 
+      margin-right: 12px;
+    }
+    .keyword {
+      color: darkcyan;
+    }
+
+  </style>
+</head>
+<body class="layui-layout-body" style="-webkit-app-region: drag;">
+  <div class="layui-layout layui-layout-admin">
+    <div class="layui-header" style="display: flex; justify-content: space-between; height: 10vh;">
+      <div style="background-image: url('./images/shield.png'); background-size: 40px 40px; background-repeat: no-repeat; background-position: 10px;">
+        <span style="text-indent: 60px;" class="banner">Fiber Protector</span> 
+      </div>
+      <div style="-webkit-app-region: no-drag">
+        <button class="tabbtn" onclick="minmaxclose(0)"><img src="./images/min.png" class="topbar"></button>
+        <button class="tabbtn" onclick="minmaxclose(1)"><img src="./images/max.png" class="topbar"></button>
+        <button class="tabbtn" onclick="minmaxclose(2)"><img src="./images/close.png" class="topbar"></button>  
+      </div>
+    </div>
+  </div>
+
+  <div class="layui-side layui-bg-black" style="position: fixed; top: 10vh; width: 20vw; -webkit-app-region: no-drag;">  
+    <div class="layui-side-scroll" style="width: 20vw;">
+      <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+      <ul class="layui-nav layui-nav-tree"  lay-filter="test" style="width: 20vw;">
+        <li class="layui-nav-item"><a onclick="showComplieConfig()">安全编译选项</a></li>
+        <li class="layui-nav-item"><a onclick="seePictures()">流程图</a></li>
+        <li class="layui-nav-item">
+          <a onclick="showVirtdoc()">虚拟化模块说明</a>
+        </li>
+        <li class="layui-nav-item">
+          <a onclick="showObfuscatedoc()">混淆模块说明</a>
+        </li>
+        <li class="layui-nav-item">
+          <a onclick="showAntidebugdoc()">反调试模块说明</a>
+        </li>
+      </ul>
+  </div> 
+
+  <div id="main" style="-webkit-app-region: no-drag; position: fixed; top: 10vh; left: 20vw; height: 90vh; width: 80vw; overflow-y: auto;">
+
+    
+    <div id="compile-config" class="layui-collapse" style="display: block;">
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">首选项</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <form>
+            C/C++源文件路径：
+            <input type="text" id='src' class="layui-input" placeholder="点击以选择源文件路径" onclick="chooseFilePath(0)">
+            <br>
+            输出文件路径：
+            <input type="text" id='dst' class="layui-input" placeholder="点击选择输出文件路径" onclick="chooseFilePath(1)">
+            <br>
+            选择预设保护方案(开太多保护可能会导致冲突崩溃,建议选择预设方案)：
+            <div>
+              <select id="FiberProtectLevel" lay-verify="required" style="height: 5vh;">
+                <option value="0">自定义</option>
+                <option value="1">仅开启字符串隐藏, 垃圾代码插入, 指令替换及其相关保护的配置</option>
+                <option value="2">仅开启虚拟化, 字符串隐藏, 垃圾代码插入及其相关保护的配置</option>
+                <option value="3">预设方案3</option>
+                <option value="4">预设方案4</option>
+                <option value="5">预设方案5</option>
+                <option value="6">预设方案6</option>
+              </select>
+            </div>
+            <br>
+            白名单(使用正则表达式编写,表示强烈要求保护的函数名):
+            <input type="text" id="WhiteFilter" class="layui-input">
+            <br>
+            黑名单(表示强制要求不保护的函数名,白名单优先级高于黑名单):
+            <input type="text" id="BlackFilter" class="layui-input">
+          </form> 
+        </div>
+      </div>
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">虚拟化设置</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <form class="layui-form">
+            <label class="layui-form-label">虚拟化开关</label>
+            <div class="layui-input-block">
+              <input type="checkbox" name="switch" lay-skin="switch">
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">模式</label>
+              <div class="layui-input-block">
+                <input type="radio" name="mode" title="基于BasicBlock粒度的虚拟化" value="0">
+                <input type="radio" name="mode" title="基于函数粒度的虚拟化" value="1">
+                <input type="radio" name="mode" title="增强化的平坦流保护" value="4" checked>
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">字节码动态加解密</label>
+              <div class="layui-input-block">
+                <input type="checkbox" name="switch" lay-skin="switch">
+                （只在基于BasicBlock粒度的虚拟化模式下有效）
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">字节码嵌入函数</label>
+              <div class="layui-input-block">
+                <input type="checkbox" name="switch" lay-skin="switch">
+                （只在基于函数粒度的虚拟化模式下有效）
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">函数强制切割</label>
+              <div class="layui-input-block">
+                <input type="checkbox" name="switch" lay-skin="switch">
+                （只在增强化的平坦流保护模式下有效）
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">代码混淆设置</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <form class="layui-form">
+            <div class="layui-form-item">
+              <label class="layui-form-label">插入垃圾代码</label>
+              <div class="layui-input-block">
+                <input type="checkbox" name="switch" lay-skin="switch">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">垃圾代码插入概率</label>
+              <div id="jc-percentage" style="float: left; width: 40vw; margin-top: 4vh;"></div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">函数抽取保护</label>
+              <div class="layui-input-block">
+                <input type="checkbox" name="switch" lay-skin="switch">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">字符串隐藏保护</label>
+              <div class="layui-input-block">
+                <input type="checkbox" name="switch" lay-skin="switch">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">字符串隐藏概率</label>
+              <div id="sc-percentage" style="float: left; width: 40vw; margin-top: 4vh;"></div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">严格隐藏模式</label>
+              <div class="layui-input-block">
+                <input type="checkbox" name="switch" lay-skin="switch">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">其他</label>
+              <div class="layui-input-block">
+                <input type="checkbox" name="others" title="全局变量保护">
+                <input type="checkbox" name="others" title="指令替换保护">
+                <input type="checkbox" name="others" title="内存执行保护">
+                <input type="checkbox" name="others" title="调用约定随机化">
+              </div>
+            </div>
+          </form> 
+        </div>
+      </div>
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">反调试设置</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <form class="layui-form">
+            <div class="layui-form-item">
+              <label class="layui-form-label">反调试开关</label>
+              <div class="layui-input-block">
+                <input type="checkbox" name="switch" lay-skin="switch">
+              </div>
+            </div>
+            <div class="layui-form-item">
+              <label class="layui-form-label">反调试保护项</label>
+              <div class="layui-input-block">
+                <input type="checkbox" name="antidebug" title="用户态组合保护" checked>
+                <input type="checkbox" name="antidebug" title="DebugPort保护">
+                <input type="checkbox" name="antidebug" title="CrossThreadFlag保护">
+                <input type="checkbox" name="antidebug" title="内存读写保护">
+                <input type="checkbox" name="antidebug" title="进程隐藏">
+              </div>
+            </div>
+          </form>
+        </div>  
+      </div>
+      <button class="layui-btn" onclick="compile()" style="margin-bottom: 1vh; margin-left: 36vw;">编译</button>
+      <div id="progress-bar" class="layui-progress layui-progress-big" lay-filter="progress-bar" lay-showPercent="true" style="display: none;">
+        <div class="layui-progress-bar" lay-percent="0%"></div>
+      </div>
+    </div>
+      
+    <div id="virt-doc" class="layui-collapse" style="display: none;">
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">基于BasicBlock的虚拟化</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <h3>预处理</h3>
+          <p>先过滤出可以进行虚拟化的IR级函数。首先，Declare和ExternallyLinkage函数是不可以被混淆的，因为它们的具体实现被定义在外部。其次，针对特定attribute或者config文件中的函数名进行过滤。最后，如果开启了概率保护，则进行相对应的随机化判断。</p>
+          <p>FiberVMProtectPass作用于函数上，以BasicBlock为粒度。在虚拟化的开始，我们通过DemotePHIToStack来去除phi指令。因为指令虚拟化后，块信息上下文会发生变化，需要将PHI提前降为栈上变量。 DemotePHIToStack 由reg2mem pass实现，通过 alloca 建立栈上slot，而后将phi及其user替换为对slot的存取。</p>
+          <h3>核心处理</h3>
+          <ul>
+            <li>字节码生成器对函数已经过滤后的指令进行字节码的生成，对每个指令指定一个唯一随机索引，将其与对应的虚拟操作符一起添加到字节码生成器内部的map。这个索引内容之后将在调度器中被使用。</li>
+            <li>对每种指令生成对应的解释器，我们把指令单独抽象为BasicBlock，并通过指令的上下文位置，结合已经完成处理的字节码生成器的结果，生成随机的加密字节码的逻辑并插入解释器中。目前有三套实现方案，涵盖四则和异或操作，随机从中挑选，并在字节码生成器中进行更新。动态加解密字节码势必会增加代码体积和略微降低程序的运行效率，因此我们提供了单独的选项供用户选择是否开启字节码的加密保护。</li>
+            <li>调度器根据已经生成的指令索引和解释器，对相应的索引和解释器进行绑定，并添加虚假解释器块和索引，并将调度器块插入函数中。</li>
+            <li>尾处理器用于判断原指令是否是跳转指令，如果原始指令是跳转指令，那么负责生成对应跳转指令的逻辑，否则对字节码指针进行更新，并返回到译码器中。</li>
+            <li>将处理后的字节码生成到全局变量中进行保存。</li>
+          </ul>
+          <h3>收尾处理工作</h3>
+          <p>在做完了虚拟化后，我们还要把可能被拆散在不同BasicBlock的指令进行 use domination 的检查，确保指令在不同的BasicBlock间正确的引用依赖顺序。对解释器中的指令进行检查，存在 value escape 的指令也进行demote。</p>
+          相关设置项:<p class="keyword">虚拟化模式,字节码动态加解密</p>
+        </div>
+      </div>
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">基于函数粒度的虚拟化</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <p>我们在第一种版本的虚拟化基础上进行了大面积的改进。我们的虚拟化以函数为粒度，即虚拟化处理后无法分析出原始的block上下文信息。
+            预处理阶段类似，我们过滤出所有可以虚拟化保护的函数。为了增强稳定性，将跳过包含以下条件的Block的函数
+          </p>
+          <ul>
+            <li>包含exception handlers</li>
+            <li>在demote stack后仍然包含PHI指令（reg2mem pass不总是能完全移除所有的phi指令）</li>
+          </ul>
+          <h3>字节码生成原理</h3>
+          <p>我们定义了 ByteCodeDefiner 类，该类保证完全的线程安全，通过单例模式为所有的 BytecodeGenerator 提供对应bytecode的具体值。在ByteCodeDefiner中，对opcode在运行时随机产生并由系统记录。通过非确定性数据源产生随机数，藉以保证opcode的充分随机性。兼顾到适配多数函数指令的具体数量和字节码的体积考量，我们对单字节码定义为 uint16_t, 由于 uint16_t 所能表示的指令数量已经能够满足大多数函数的要求，且此时字节码并不会占据太大的体积，故选择该类型。 字节码的类型和对应的生成器完全解耦，用户可以根据具体代码需求修改字节码的类型大小，实现一处改动即可配置。</p>
+          <p>而后我们将所有的指令根据之前的bytecode关系生成对应的 SingleBytecode ，再进行dump操作并将具体值映射到全局变量中。由于统一将字节码放置于全局变量所在的data段中的不安全性，我们提供了选项可以将字节码直接嵌入函数体中。尽管在IR层面，我们还是可以通过内嵌汇编的形式嵌入自定义的字节码值。为了防止我们嵌入的字节码值后续被优化，我们在多个地方通过不透明谓词的方式进行虚假跳转，以增加该部分的user。</p>
+          <img src="images/functionvirt.png" style="width: 70vw; height: 60vh;">
+          <br>相关设置项:<p class="keyword">虚拟化模式,字节码嵌入函数</p>
+        </div>
+      </div>
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">平坦流保护</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <p>控制流平坦化旨在使得所有的BasicBlock都有共同的前驱，用以破坏对函数流程的分析。前驱块用于进行基本块的分发，可以使用switch语句，依赖switch变量进行分发跳转。</p>
+          <p>我们首先对所有的基本块进行编号，然后将每个基本块改造为一个switch的case。改造的过程主要分为两步：</p>
+          <ul>
+            <li>将基本块的后继全部修改为前驱块，即无条件跳转到前驱块。</li>
+            <li>在基本块中插入更新swith变量为各个后继块对应的编号。</li>
+          </ul>
+          <p>我们设置初始的switch变量为入口entry块的编号，此时，从函数入口出发，就能够顺着switch变量的不断迭代执行各个块了。处于对重点函数的保护，我们还可以通过将switch(x)更变为switch(f(x)),再将switch lower到if-then-chain,以此同时隐藏后继块和当前块的编号。此处，f(x)为单向函数，例如公钥加密函数，椭圆曲线离散对数，hash等。这样可以有效阻止符号执行等动态逆向技术对块编号的分析。</p>
+          原函数:
+          <br>
+          <img src="images/plainflow1.png" style="width: 70vw; height: 60vh;">
+          <br>
+          平坦化之后的函数:
+          <br>
+          <img src="images/plainflow2.png" style="width: 70vw; height: 60vh;">
+          <br>相关设置项:<p class="keyword">虚拟化模式,函数强制切割</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="obfuscate-doc" class="layui-collapse" style="display: none;">
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">垃圾代码</h2>
+        <div class="layui-colla-content layui-show">
+          <p>通过向代码插入类似下例中的垃圾代码干扰反汇编分析。这种方式对线性扫描或者递归扫描的反汇编器都能起到很强的干扰效果。</p>
+          <pre class="layui-code">
+          CALL xxx
+          Junk Code
+          xxx: 
+          ADD SP， offset
+          normal control flow</pre>
+          <p>垃圾代码会根据代码的生成平台以及架构自动选择方案和指令，并且对无关的垃圾代码(JunkCode)采用随机生成的方式来干扰分析。</p>
+          <br>
+          相关设置项:<p class="keyword">垃圾代码插入,垃圾代码插入概率</p>
+        </div>
+      </div>
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">函数抽取</h2>
+        <div class="layui-colla-content layui-show">
+        <p>对于庞大的核心逻辑函数，如果全部采用虚拟化或者混淆的方式，对性能的影响较大。通过对函数中较大的BasicBlock的切分，抽取出新的函数，并可以在新的函数中做不同等级的混淆。使得混淆的粒度更加细致。抽取出的函数只是原函数功能中的一部分，对程序的运行没有影响，但是能够严重干扰反汇编器的控制流分析和逆向分析。</p>
+        <pre class="layui-code">
+
+        VOID function(){
+          LOGIC CODE0;
+          LOGIC CODE1;
+          LOGIC CODE2;
+          LOGIC CODE3;
+          LOGIC CODE4;
+        }</pre>
+        <p>抽取之后</p>
+        <pre class="layui-code">
+
+        VOID function_extracted1(){
+          MODIFIED_CODE1;
+        }
+        VOID function_extracted2(){
+          MODIFIED_CODE2;
+        }
+        VOID function_extracted4(){
+          MODIFIED_CODE2;
+        }
+        VOID function(){
+          LOGIC CODE0;
+          function_extracted1();
+          function_extracted2();
+          LOGIC CODE3;
+          function_extracted4();
+        }</pre>
+        <br>
+          相关设置项:<p class="keyword">函数抽取保护</p>
+        </div>
+      </div>
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">字符串隐藏</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <p>在字符串加密的基础上，利用字符串扫描软件通常只能扫描可打印字符串的特点，将字符串故意转换为不可见字符的形式。</p>
+          <ul>
+          <li>遍历所有函数代码中使用的字符串，对是否可变进行分类。</li>
+          <li>对于不可变字符串，在每个引用处添加一个字符串副本(可以通过选项设置副本的最大数量)，然后在引用的函数入口添加解码代码并且设置一个全局标识位。通过全局标识位来表示字符串是否被解密。添加副本是为了防止一处字符串被逆向后导致的所有使用该字符串的代码逻辑被攻破。</li>
+          <li>对于可变字符串，先对该字符串进行加密(使得加密后的字符串为不可见字符)，然后扫描字符串的使用位置，对于每个函数中使用该字符串的指令的位置，先用LCA(最近共同祖先)计算出距离使用的指令最近的公共祖先BasicBlock，并在其位置处添加字符串解密代码。此时，设置一个两位的标志位，其低位表示字符串是否开始被解密，高位表示是否解密完毕。通过标识位可以有效的处理多个不同函数同时使用字符串的解密问题，而且可以保证多线程环境下的字符串解密安全。</li>
+          </ul>
+          <br>
+          相关设置项:<p class="keyword">字符串隐藏保护,字符串隐藏概率,严格隐藏模式</p>
+        </div>
+      </div>
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">其他</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <ul>
+            <li>间接全局变量引用: 通过索引的方式来使用全局变量，避免全局变量被交叉引用。</li>
+            <li>指令替换: 将if指令中的条件布尔表达式转换为地址索引值，间接跳转到目标地址。</li>
+            <li>内存执行保护: 通过向可能使用数组索引的指令后添加bndcu系列指令(启用Intel MPX)来存储内存边界，防止越界到非预期内存。</li>
+          </ul>
+          <br>
+          相关设置项:<p class="keyword">全局变量保护,指令替换保护,指令替换概率,内存执行保护</p>
+        </div>
+      </div>
+      
+    </div>
+
+    <div id="antidebug-doc" class="layui-collapse" style="display: none;">
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">用户态组合保护(稳定的推荐选择)</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <p>通过对标志位,指令运行间隔时间以及线程等等的特殊设置，达到检测调试器并进行反调试保护的目的，是最稳定的选择，推荐使用此选项。</p>
+          <br>
+          相关设置项:<p class="keyword">用户态组合保护</p>
+        </div>
+      </div>
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">调试端口清零(需要管理员权限,不推荐)</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <p>DebugPort清零，debugport位于EPROCESS结构中，调试时会通过DebugPort端口将调试事件发送给ring3进行调试。如果将其设置为0，则ring3就无法进行调试信息的读取。如果开启此功能，驱动将启动一个隐藏线程对此端口持续清零。</p>
+          <br>
+          相关设置项:<p class="keyword">DebugPort保护</p>
+        </div>
+      </div>
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">跨线程标志位设置(需要管理员权限,不推荐)</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <p>CrossThreadFlag位于线程结构体ETHREAD结构中，调试时异常分发流程会调用DbgkForwardException函数，此函数会检查 CrossThreadFlags 的 PS_CROSS_THREAD_FLAGS_HIDEFROMDBG 标志位是否被设置，如果此标志位被设置则会返回失败信息。如果开启此功能，驱动将遍历进程线程结构体，对此标志位进行设置。</p>
+          <br>
+          相关设置项:<p class="keyword">CrossThreadFlag保护</p>
+        </div>
+      </div>
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">内存读写保护(需要管理员权限,不推荐)</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <p>对进程的内存进行读写保护，如果开启此功能，驱动将注册系统回调函数对进程句柄降权处理，保护进程内存。</p>
+          <br>
+          相关设置项:<p class="keyword">内存读写保护</p>
+        </div>
+      </div>
+      <div class="layui-colla-item">
+        <h2 class="layui-colla-title">进程隐藏(需要管理员权限,不推荐)</h2>
+        <div class="layui-colla-content layui-show layui-text">
+          <p>对进程进行隐藏，如果开启此功能，用户态调试器将无法枚举到受保护进程</p>
+          <br>
+          相关设置项:<p class="keyword">进程隐藏</p>
+        </div>
+      </div>
+    </div>
+  </div>
+<script src="./layui.all.js"></script>
+</script>
+<script src="./renderer.js"></script>
+</body>
+</html>

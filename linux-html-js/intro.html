@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intro</title>
+    <link rel="stylesheet" href="./css/layui.css">
+    <style>
+    .tabbtn {
+      background-color: black; 
+      border: 0; 
+      line-height: 24px;
+    }
+    .topbar {
+      height: 24px; 
+      width: 24px; 
+      margin-right: 12px;
+    }
+    </style>
+</head>
+<body style="background-image: url(./images/bgc.png); background-size: 100vw 100vh; text-align: center;">
+    <div style='position: fixed; right: 3vw; top: 3vh;'>
+        <button class="tabbtn" onclick="minmaxclose(0)"><img src="./images/min.png" class="topbar"></button>
+        <button class="tabbtn" onclick="minmaxclose(1)"><img src="./images/max.png" class="topbar"></button>
+        <button class="tabbtn" onclick="minmaxclose(2)"><img src="./images/close.png" class="topbar"></button>  
+      </div>
+    <div style="margin-top: 60vh;"><button type="button" class="layui-btn" onclick="begin()">开始使用</button></div>
+</body>
+<script src="./start.js"></script>
+</html>
