@@ -261,7 +261,7 @@ function compile() {
     shellString += clangPath
     shellString += ' -mllvm -fiber-enable -mllvm -fiber-cfg=MyConfig.yaml'
     fs.readdirSync(inputPath).forEach(element => {
-        if(element.endsWith('cpp') || element.endsWith('c')) {
+        if(element.endsWith('.cpp') || element.endsWith('.c')) {
             let srcCode = fs.readFileSync(element,'utf-8')
             if(document.getElementsByName('antidebug')[0].checked == true) {
                 if(srcCode.search(/#define\s*__HAPPYSADPROTECTED__/) == -1 && srcCode.search(/int\s*main\(/) != -1) {
